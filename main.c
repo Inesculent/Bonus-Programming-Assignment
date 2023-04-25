@@ -153,10 +153,11 @@ int twoWay(char cache [SIZE/2][2][CHAR_LEN]){
             //Reset the counter for that slot
             arr[conv][index] = 0;
 
-        }
-        //We update the least recently used as needed
-        for (int i = 0; i < 2; i++){
-            arr[conv][i]++;
+            //Update lru
+            for (int i = 0; i < 4; i++){
+                arr[conv][i]++;
+            }
+
         }
     }
 
@@ -232,10 +233,11 @@ int fourWay(char cache[SIZE/4][4][CHAR_LEN]){
             //Reset the counter for that slot
             arr[conv][index] = 0;
 
+                for (int i = 0; i < 4; i++){
+                    arr[conv][i]++;
+                }
         }
-        for (int i = 0; i < 4; i++){
-            arr[conv][i]++;
-        }
+
     }
 
     //Close file and return the value
