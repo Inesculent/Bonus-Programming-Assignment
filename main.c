@@ -1,4 +1,6 @@
 //This is my attempt (Dylan Dinh) at the bonus programming assignment
+//The previous implementation did not work as expected so I have updated it
+//I believe the issue lied within the least recently used logic
 
 
 #include <stdio.h>
@@ -29,8 +31,9 @@ int main(){
 
     int direct_hits = directMap(cache1);
 
-    printf("Hits using direct-mapped: %d\n Hit rate is %f\n--------------\n", direct_hits, (float)direct_hits/9999);
+    printf("The num of accesses should be 9999 (The amount of data within the traces.txt file)\n\n");
 
+    printf("Hits using direct-mapped: %d\n Hit rate is %f\n--------------\n", direct_hits, (float)direct_hits/9999);
 
     char cache2[SIZE/2][2][CHAR_LEN];
 
@@ -88,9 +91,6 @@ int directMap(char cache[SIZE][CHAR_LEN]){
 }
 
 
-
-
-
 int twoWay(char cache [SIZE/2][2][CHAR_LEN]){
 
     char temp[CHAR_LEN];
@@ -115,7 +115,6 @@ int twoWay(char cache [SIZE/2][2][CHAR_LEN]){
         conv = conv %(SIZE/2);
 
         //If we have a match at that address then good, else we replace
-
 
         //For hit
         int flag = 0;
@@ -146,25 +145,21 @@ int twoWay(char cache [SIZE/2][2][CHAR_LEN]){
             //Reset the counter for that slot
             arr[conv][index] = 0;
 
-        }
+        
                 
-        //Update +1
-        for (int i = 0; i < SIZE/2; i++){
-            for (int j = 0; j < 2; j++){
-                //printf(" - %s -\n", cache[i][j]);
-                arr[i][j]++;
-            }
-            //printf("--------\n");
+
         }
-        //printf("========================\n");
+        //We update the least recently used as needed
+        for (int i = 0; i < 2; i++){
+            arr[conv][i]++;
+        }
     }
     fclose(fp);
     return hit_counter;
     
 }
 
-int fourWay(char cache[SIZE/4][4][20]){
-
+int fourWay(char cache[SIZE/4][4][CHAR_LEN]){
 
     char temp[CHAR_LEN];
 
@@ -174,6 +169,7 @@ int fourWay(char cache[SIZE/4][4][20]){
 
     //Create helper array to implement least recently used logic (probably bad runtime)
     int arr[SIZE/4][4];
+
     //Make sure to initialize at 1
     for (int i = 0; i < SIZE/4; i++){
         for (int j = 0; j < 4; j++){
@@ -186,10 +182,9 @@ int fourWay(char cache[SIZE/4][4][20]){
         long long int conv = toDecimal(temp);
         //Get the index
         conv = conv %(SIZE/4);
+  
 
         //If we have a match at that address then good, else we replace
-
-
         //For hit
         int flag = 0;
         for (int i = 0; i < 4; i++){
@@ -197,6 +192,16 @@ int fourWay(char cache[SIZE/4][4][20]){
 
                 hit_counter++;
                 flag = 1;
+                
+                for (int j = 0; j < 4; j++){
+                    if (j != i) {
+                        arr[conv][j]++;
+                    }
+                    else {
+                        arr[conv][j] = 0;
+                    }
+                }
+
                 break;
     
             }
@@ -219,17 +224,16 @@ int fourWay(char cache[SIZE/4][4][20]){
             //Reset the counter for that slot
             arr[conv][index] = 0;
 
-        }
+        
                 
-        //Update +1
-        for (int i = 0; i < SIZE/4; i++){
-            for (int j = 0; j < 4; j++){
-                //printf(" - %s -\n", cache[i][j]);
-                arr[i][j]++;
-            }
-            //printf("--------\n");
-        }
+            for (int i = 0; i < 4; i++){
+                //Not the index or else we defeat the purpose
+                    if (i != index){
+                        arr[conv][i]++;
+                    }
+                }
         //printf("========================\n");
+        }
     }
 
     fclose(fp);
@@ -250,6 +254,7 @@ int fullyAssociative(char cache [SIZE][CHAR_LEN]){
 
     //Create helper array to implement least recently used logic (probably bad runtime)
     int arr[SIZE];
+
     //Make sure to initialize at 1
     for (int i = 0; i < SIZE; i++){
         arr[i] = 1;
@@ -263,6 +268,13 @@ int fullyAssociative(char cache [SIZE][CHAR_LEN]){
             if (strcmp(cache[i], temp) == 0){
                 hit_counter++;
                 flag = 1;
+
+                for (int j = 0; j < SIZE; j++) {
+                    if (arr[j] > arr[i] && arr[j] != -1){
+                        arr[j]--;
+                    }
+                }
+                arr[i] = SIZE - 1;
                 break;
     
             }
@@ -270,28 +282,33 @@ int fullyAssociative(char cache [SIZE][CHAR_LEN]){
         
         if (flag != 1){
 
-            int largest = -1;
+            int min = arr[0];
             int index = 0;
 
             //Find largest since last replaced
             for (int i = 0; i < SIZE; i++){
-                if (arr[i] > largest){
-                    largest = arr[i];
+                if (arr[i] < min){
+                    min = arr[i];
                     index = i;
                 }
             }
 
             strcpy(cache[index], temp);
-            //Reset the counter for that slot
-            arr[index] = 0;
 
-        }
 
-        for (int i = 0; i < SIZE; i++){
+        
+
+            for (int i = 0; i < SIZE; i++){
                 //printf(" - %s -\n", cache[i]);
-                arr[i]++;
+                if (arr[i] != -1){
+                    arr[i]--;
+                }
+            }
+            
+            //Update array
+            arr[index] = SIZE - 1;
+            //printf("========================\n");
         }
-        //printf("========================\n");
     }
     fclose(fp);
     return hit_counter;
@@ -303,18 +320,19 @@ int fullyAssociative(char cache [SIZE][CHAR_LEN]){
 
 long long int toDecimal(char input[]){
 
-    int i = strlen(input) - 1;
+    int i = strlen(input) - 1;    
 
     int j = 0;
 
     long long int total = 0;
 
-    while (i > 1){
+    while (i > 1){   
         
         //we need to first convert the string to number
 
         long long int temp = toNumber(input[i]);
 
+        //Convert hexadecimal to decimal
         total += (long long int)(temp * pow(16, j));
 
         j++;
@@ -328,7 +346,7 @@ long long int toDecimal(char input[]){
 
 
 int toNumber (char x){
-
+    //Converting string to number
     if (x >= '0' && x <= '9'){
         return (x - '0');
     }
