@@ -53,9 +53,6 @@ int main(){
 
     printf("Hits using fully associative: %d\n Hit rate is %f\n--------------\n", fully, (float)fully/9999);
 
-
-
-
     return 0;
 }
 
@@ -123,6 +120,17 @@ int twoWay(char cache [SIZE/2][2][CHAR_LEN]){
             if (strcmp(cache[conv][i], temp) == 0){
                 hit_counter++;
                 flag = 1;
+                
+                //If we have a hit then we have technically "recently used"
+                for (int j = 0; j < 2; j++){
+                    if (j != i) {
+                        arr[conv][j]++;
+                    }
+                    else {
+                        arr[conv][j] = 0;
+                    }
+                }
+
                 break;
     
             }
@@ -145,15 +153,14 @@ int twoWay(char cache [SIZE/2][2][CHAR_LEN]){
             //Reset the counter for that slot
             arr[conv][index] = 0;
 
-        
-                
-
         }
         //We update the least recently used as needed
         for (int i = 0; i < 2; i++){
             arr[conv][i]++;
         }
     }
+
+    //Close file and return the value
     fclose(fp);
     return hit_counter;
     
@@ -193,6 +200,7 @@ int fourWay(char cache[SIZE/4][4][CHAR_LEN]){
                 hit_counter++;
                 flag = 1;
                 
+                //If we have a hit then we have technically "recently used"
                 for (int j = 0; j < 4; j++){
                     if (j != i) {
                         arr[conv][j]++;
@@ -224,18 +232,13 @@ int fourWay(char cache[SIZE/4][4][CHAR_LEN]){
             //Reset the counter for that slot
             arr[conv][index] = 0;
 
-        
-                
-            for (int i = 0; i < 4; i++){
-                //Not the index or else we defeat the purpose
-                    if (i != index){
-                        arr[conv][i]++;
-                    }
-                }
-        //printf("========================\n");
+        }
+        for (int i = 0; i < 4; i++){
+            arr[conv][i]++;
         }
     }
 
+    //Close file and return the value
     fclose(fp);
     return hit_counter;
     
@@ -307,12 +310,12 @@ int fullyAssociative(char cache [SIZE][CHAR_LEN]){
             
             //Update array
             arr[index] = SIZE - 1;
-            //printf("========================\n");
         }
     }
+
+    //Close file and return the value
     fclose(fp);
     return hit_counter;
-
 
 }
 
@@ -338,11 +341,8 @@ long long int toDecimal(char input[]){
         j++;
         i--;
     }
-
     return total;
-
 }
-
 
 
 int toNumber (char x){
