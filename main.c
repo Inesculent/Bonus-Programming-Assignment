@@ -274,12 +274,14 @@ int fullyAssociative(char cache [SIZE][CHAR_LEN]){
                 hit_counter++;
                 flag = 1;
 
-                for (int j = 0; j < SIZE; j++) {
-                    if (arr[j] > arr[i] && arr[j] != -1){
-                        arr[j]--;
+                for (int j = 0; j < SIZE; j++){
+                    if (j != i) {
+                        arr[j]++;
+                    }
+                    else {
+                        arr[j] = 0;
                     }
                 }
-                arr[i] = SIZE - 1;
                 break;
     
             }
@@ -287,31 +289,25 @@ int fullyAssociative(char cache [SIZE][CHAR_LEN]){
         
         if (flag != 1){
 
-            int min = arr[0];
+            int largest = -1;
             int index = 0;
 
             //Find largest since last replaced
             for (int i = 0; i < SIZE; i++){
-                if (arr[i] < min){
-                    min = arr[i];
+                if (arr[i] > largest){
+                    largest = arr[i];
                     index = i;
                 }
             }
 
             strcpy(cache[index], temp);
+            //Reset the counter for that slot
+            arr[index] = 0;
 
-
-        
-
-            for (int i = 0; i < SIZE; i++){
-                //printf(" - %s -\n", cache[i]);
-                if (arr[i] != -1){
-                    arr[i]--;
-                }
-            }
             
-            //Update array
-            arr[index] = SIZE - 1;
+            for (int i = 0; i < 4; i++){
+                arr[i]++;
+            }
         }
     }
 
